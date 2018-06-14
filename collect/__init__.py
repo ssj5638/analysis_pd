@@ -1,1 +1,2 @@
 from .crawler import crawlling_tourspot_visitor
+from .crawler import crawlling_foreign_visitor
