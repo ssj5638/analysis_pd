@@ -46,7 +46,7 @@ def preprocess(data):
 
 def crawlling_tourspot_visitor(district, start_year, end_year):
     result = []
-    filename = '%s_touristspot_%d_%d'.format(district, start_year, end_year)
+    filename = '%s/%s_touristspot_%d_%d'.format(RESULT_DIRECTORY,district, start_year, end_year)
 
     for year in range(start_year, end_year+1):
         for month in range(1, 13, 1):
