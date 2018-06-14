@@ -16,6 +16,7 @@ print(url)
 for items in api.pd_fetch_tourspot_visitor(district1='서울특별시', year=2017, month=7):
     print(items)
 
-
-
+# test for pd_fetch_foreign_visitor
+item = api.pd_fetch_foreign_visitor(112, 2017, 7)
+print(item)
 
