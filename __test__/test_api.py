@@ -1,5 +1,5 @@
 from analysis_pd.collect.api import api
-import json
+
 
 # test for pd_gen_url
 url = api.pd_gen_url('http://openapi.tour.go.kr/openapi/service/TourismResourceStatsService/getPchrgTrrsrtVisitorList',
@@ -13,11 +13,9 @@ url = api.pd_gen_url('http://openapi.tour.go.kr/openapi/service/TourismResourceS
 print(url)
 
 # test for pd_tourspot_visitor
-#for item in api.pd_fetch_tourspot_visitor(district1='서울특별시', year=2012, month=7):
-#    print(item)
-
-for items in api.pd_fetch_tourspot_visitor(district1='서울특별시', year=2012, month=7):
+for items in api.pd_fetch_tourspot_visitor(district1='서울특별시', year=2017, month=7):
     print(items)
+
 
 
 

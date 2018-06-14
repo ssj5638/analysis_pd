@@ -1,6 +1,6 @@
 from urllib.parse import urlencode
 from analysis_pd.collect.api.json_requests import json_request
-from urllib.parse import quote_plus
+import math
 
 
 BASE_URL_PD_API = 'http://openapi.tour.go.kr/openapi/service/TourismResourceStatsService/getPchrgTrrsrtVisitorList'
@@ -14,25 +14,34 @@ def pd_gen_url(endpoint=BASE_URL_PD_API, **params):
 
 
 def pd_fetch_tourspot_visitor(district1='', district2='', tourspot='', year=0, month=0):
-    url = pd_gen_url(YM='{0:04d}{1:02d}'.format(year, month),
-                     SIDO = district1,
-                     GUNGU = district2,
-                     RES_NM = tourspot,
-                     numOfRows=10,
-                     _type = 'json')
 
-    while True:
+    isnext = True
+    pageNo = 1
+
+    while isnext:
+        url = pd_gen_url(YM='{0:04d}{1:02d}'.format(year, month),
+                         SIDO=district1,
+                         GUNGU=district2,
+                         RES_NM=tourspot,
+                         numOfRows=100,
+                         _type='json',
+                         pageNo=pageNo)
         json_result = json_request(url=url)
-        json_1 = json_result.get('response')
-        json_2 = json_1.get('body')
 
-        page = json_2.get('pageNo')
-        totalcnt = json_2.get('totalCount')
-
-        json_3 = json_2.get('items')
-
-        if page == totalcnt:
+        if json_result is None:
             break
 
-        return json_3.get('item')
+        json_body = json_result.get('response').get('body')
+        json_nor = None if json_result is None else json_body.get('numOfRows')
+        json_tc = None if json_result is None else json_body.get('totalCount')
 
+        json_items = json_body.get('items')
+
+        json_lp = math.ceil(json_tc/json_nor)
+
+        if pageNo == json_lp:
+            isnext = False
+        else:
+            pageNo += 1
+
+        yield json_items.get('item')
