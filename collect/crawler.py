@@ -1,12 +1,9 @@
 from .api import api
 import json
-import os
 
 
-RESULT_DIRECTORY = '__results__/crawlling'
-
-
-def preprocess(data):
+# tourspot 전처리
+def preprocess_tourspot_visitor(data):
     del data['addrCd']
     del data['rnum']
 
@@ -53,6 +50,7 @@ def preprocess(data):
         del data['gungu']
 
 
+# foreign 전처리
 def preprocess_foreign_visitor(data):
     del data['ed']
     del data['edCd']
@@ -78,48 +76,45 @@ def preprocess_foreign_visitor(data):
         del data['ym']
 
 
-def crawlling_tourspot_visitor(district, start_year, end_year):
+# tourspot 크롤링
+def crawlling_tourspot_visitor(district, start_year, end_year, fetch=True, result_directory='', service_key=''):
     results = []
-    filename = '%s/%s_touristspot_%s_%s.json' % (RESULT_DIRECTORY, district, start_year, end_year)
+    filename = '%s/%s_touristspot_%s_%s.json' % (result_directory, district, start_year, end_year)
+    if fetch:
+        for year    in range(start_year, end_year+1):
+            for month in range(1, 13, 1):
+                for items in api.pd_fetch_tourspot_visitor(district, year=year, month=month, service_key=service_key):
+                    for data in items:
+                        preprocess_tourspot_visitor(data)
+                        results.append(data)
 
-    for year in range(start_year, end_year+1):
-        for month in range(1, 13, 1):
-            for items in api.pd_fetch_tourspot_visitor(district, year=year, month=month):
-                for data in items:
-                    preprocess(data)
-                    results.append(data)
-
-
-    with open(filename, 'w', encoding='utf-8') as outfile:
-        json_string = json.dumps(results,
-                   indent = 4,
-                   sort_keys = True,
-                   ensure_ascii = False)  # 아스키 코드로만 구성되어있는가?
-        outfile.write(json_string)
+        with open(filename, 'w', encoding='utf-8') as outfile:
+            json_string = json.dumps(results, indent = 4, sort_keys = False, ensure_ascii = False)
+            outfile.write(json_string)
 
 
-def crawlling_foreign_visitor(country, start_year, end_year):
+# foreign 크롤링
+def crawlling_foreign_visitor(country, start_year, end_year, fetch=True, result_directory='', service_key=''):
     results= []
 
-    for year in range(start_year, end_year+1):
-        for month in range (1, 13):
-            data = api.pd_fetch_foreign_visitor(country[1], year, month)
-            if data is None:
-                continue        # 반복문의 처음으로 돌아가기
+    if fetch:
+        for year in range(start_year, end_year+1):
+            for month in range (1, 13):
+                data = api.pd_fetch_foreign_visitor(country[1], year, month, service_key)
+                if data is None:
+                    continue        # 반복문의 처음으로 돌아가기
 
-            preprocess_foreign_visitor(data)
-            results.append(data)
+                preprocess_foreign_visitor(data)
+                results.append(data)
 
-    # save data to file
-    filename = '%s/%s(%s)_foreignvisitor_%s_%s.json' % (RESULT_DIRECTORY,country[0], country[1], start_year, end_year)
+        # save data to file
+        filename = '%s/%s(%s)_foreignvisitor_%s_%s.json' % (result_directory, country[0], country[1], start_year, end_year)
 
-    with open(filename, 'w', encoding='utf-8') as outfile:      # 쓰기 모드 'w'
-        json_string = json.dumps(results,
-                                 indent=4,
-                                 sort_keys=True,
-                                 ensure_ascii=False)     # indent는 들여쓰기
-        outfile.write(json_string)
+        with open(filename, 'w', encoding='utf-8') as outfile:      # 쓰기 모드 'w'
+            json_string = json.dumps(results,
+                                         indent=4,
+                                         sort_keys=True,
+                                         ensure_ascii=False)            # indent는 들여쓰기 // ensure_ascii는 아스키 코드로만 구성되어있는가?
+            outfile.write(json_string)
 
 
-if not os.path.exists(RESULT_DIRECTORY):            # 해당 디렉토리가 없으면 새로 만들기
-    os.makedirs(RESULT_DIRECTORY)
